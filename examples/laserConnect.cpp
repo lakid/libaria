@@ -32,9 +32,12 @@ Adept MobileRobots, 10 Columbia Drive, Amherst, NH 03031; +1-603-881-7960
  * This program will work either with the MobileSim simulator or on a real
  * robot's onboard computer.  
  */
-
+FILE *myFile; 
 int main(int argc, char **argv)
 {
+   std::string filename = "1scans.2d";
+  myFile = ArUtil::fopen(filename.c_str(), "w+");
+	
   Aria::init();
   ArRobot robot;
   ArArgumentParser parser(&argc, argv);
@@ -113,7 +116,25 @@ int main(int argc, char **argv)
 		double dist = laser->currentReadingPolar(laser->getStartDegrees(), laser->getEndDegrees(), &angle);
 
 		ArLog::log(ArLog::Normal, "Laser #%d (%s): %s. Have %d 'current' readings. Closest reading is at %3.0f degrees and is %2.4f meters away.", laserIndex, laser->getName(), (laser->isConnected() ? "connected" : "NOT CONNECTED"), currentReadings->size(), angle, dist/1000.0);
+		
+		ArSensorReading *reading;
+		
+		std::list<ArSensorReading *>::const_iterator it;
+		const std::list<ArSensorReading *> *readings;
+		readings = laser->getRawReadings();
+ 		//ArLaserLogger logger(&robot, laser, 300, 25, filename.c_str(), true);
                 laser->unlockDevice();
+
+		  if (!readings->empty())
+		  {
+
+      for (it = readings->begin(); it != readings->end(); it++)
+      {
+	reading = (*it);
+	fprintf(myFile, "%f, ", reading->getRange()/1000.0);
+      }
+	fprintf(myFile, "\n");
+		  }
 	    }
 	if(numLasers == 0)
 		ArLog::log(ArLog::Normal, "No lasers.");
